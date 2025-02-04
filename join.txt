@@ -1,0 +1,123 @@
+-- Employees table
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    DepartmentID INT,
+    Salary DECIMAL(10, 2)
+);
+
+-- Departments table
+CREATE TABLE Departments (
+    DepartmentID INT PRIMARY KEY,
+    DepartmentName VARCHAR(50),
+    ManagerID INT
+);
+
+-- Projects table
+CREATE TABLE Projects (
+    ProjectID INT PRIMARY KEY,
+    ProjectName VARCHAR(50),
+    EmployeeID INT
+);
+
+
+1. Inner Join: List all employees and their departments. 
+SELECT e.Name AS EmployeeName, d.DepartmentName
+FROM Employees e
+INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+
+2. Inner Join with Aggregate: Find the total salary paid in each department. 
+SELECT d.DepartmentName, SUM(e.Salary) AS TotalSalary
+FROM Employees e
+INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName;
+
+3. Left Join: List all employees, including those not assigned to any department. 
+SELECT e.Name AS EmployeeName, d.DepartmentName
+FROM Employees e
+LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+
+4. Right Join: List all departments and their employees (including empty departments).
+SELECT e.Name AS EmployeeName, d.DepartmentName
+FROM Employees e
+RIGHT JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+ 
+5. Full Outer Join: Find all employees and departments, even if no match exists. 
+
+SELECT e.Name AS EmployeeName, d.DepartmentName
+FROM Employees e
+LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID
+
+UNION DISTINCT  -- Or UNION if you want to keep duplicates
+
+SELECT e.Name AS EmployeeName, d.DepartmentName
+FROM Employees e
+RIGHT JOIN Departments d ON e.DepartmentID = d.DepartmentID;
+
+
+6. Cross Join: Create all possible pairs of employees and projects.
+SELECT e.Name AS EmployeeName, p.ProjectName
+FROM Employees e
+CROSS JOIN Projects p;
+ 
+7. Self Join: Find employees who work in the same department as their colleagues. 
+SELECT e1.Name AS Employee1, e2.Name AS Employee2, d.DepartmentName
+FROM Employees e1
+INNER JOIN Employees e2 ON e1.DepartmentID = e2.DepartmentID AND e1.EmployeeID <> e2.EmployeeID
+INNER JOIN Departments d ON e1.DepartmentID = d.DepartmentID;
+
+8. Inner Join with Projects: List all employees assigned to projects. 
+SELECT e.Name AS EmployeeName, p.ProjectName
+FROM Employees e
+INNER JOIN Projects p ON e.EmployeeID = p.EmployeeID;
+
+9. Join with Aggregate and HAVING Clause: Find departments with more than 2 employees.
+SELECT d.DepartmentName, COUNT(*) AS NumberOfEmployees
+FROM Employees e
+INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName
+HAVING COUNT(*) > 2;
+ 
+10. Join with Subquery: Find the highest-paid employee in each department. 
+SELECT e.Name AS EmployeeName, d.DepartmentName, e.Salary
+FROM Employees e
+INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+WHERE (e.DepartmentID, e.Salary) IN (
+    SELECT DepartmentID, MAX(Salary)
+    FROM Employees
+    GROUP BY DepartmentID
+);
+
+11. Anti Join: Find employees not assigned to any project.
+
+SELECT e.Name AS EmployeeName
+FROM Employees e
+LEFT JOIN Projects p ON e.EmployeeID = p.EmployeeID
+WHERE p.ProjectID IS NULL;
+
+12. Join with Aggregate Function: Find the average salary for each department.
+ SELECT d.DepartmentName, AVG(e.Salary) AS AverageSalary
+FROM Employees e
+INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName;
+
+13. Multiple Joins: List all employees, their departments, and projects. 
+SELECT e.Name AS EmployeeName, d.DepartmentName, p.ProjectName
+FROM Employees e
+INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+LEFT JOIN Projects p ON e.EmployeeID = p.EmployeeID;
+
+14. Join with MAX Function: Find the department with the highest total salary. 
+SELECT d.DepartmentName, SUM(e.Salary) AS TotalSalary
+FROM Employees e
+INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+GROUP BY d.DepartmentName
+ORDER BY TotalSalary DESC
+LIMIT 1;
+
+15. Join on Multiple Conditions: List employees working under a specific manager.
+SELECT e.Name AS EmployeeName
+FROM Employees e
+INNER JOIN Departments d ON e.DepartmentID = d.DepartmentID
+INNER JOIN Employees m ON d.ManagerID = m.EmployeeID  -- Join with managers table
+WHERE m.Name = 'Alice Smith';  -- Replace 'Alice Smith' with the desired manager's name

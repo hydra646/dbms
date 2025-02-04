@@ -1,0 +1,181 @@
+            ///  DDL \\\\
+
+create database employee
+1.
+CREATE TABLE employees (
+    id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    designation VARCHAR(50),
+    salary DECIMAL DEFAULT 5000
+);
+
+ 2. ALTER TABLE employees
+ADD COLUMN joining_date DATE;
+
+3.ALTER TABLE employees
+MODIFY salary FLOAT;
+
+ 4.ALTER TABLE employees
+DROP joining_date;
+
+ 5.ALTER TABLE employees
+CHANGE  designation job_title VARCHAR(50);
+
+ 6.RENAME table employees TO company_employees;
+
+7.DROP TABLE employees;
+
+8 .TRUNCATE TABLE company_employees;
+
+
+                 ///  DML \\\\
+
+9.INSERT INTO company_employees (
+VALUES 
+(3, 'Alice Brown', 'Analyst', 7000), 
+(4, 'Bob White', 'Tester', 8000), 
+(5, 'Charlie Black', 'Designer', 6000)
+);
+
+
+10. Write a query to fetch all the columns and rows from the employees table
+SELECT * FROM company_employees;
+
+11.Write a query to fetch only the name and designation columns from the employees table
+SELECT name, designation FROM employees;
+
+12. Write a query to fetch details of employees whose salary is greater than 8000.
+SELECT * FROM employees 
+WHERE salary > 8000;
+
+13.Write a query to find employees whose name starts with 'J'.
+SELECT * FROM employees 
+WHERE name LIKE 'J%';
+
+14.Update the salary of the employee with id = 1 to 12000.
+UPDATE employees 
+SET salary = 12000 
+WHERE id = 1;
+
+15.Update the designation to 'Senior Developer' and salary to 15000 for the employee with id = 
+2
+UPDATE employees
+SET designation = 'Senior Developer', salary = 15000
+WHERE employee_id = 2;
+
+
+16.Delete the record of the employee with id = 5. 
+DELETE FROM employees 
+WHERE id = 5;
+
+17. Delete all employees whose salary is less than 7000. 
+DELETE FROM employees 
+where salary < 7000;
+
+18.Write a query to fetch all rows from the employees table and order them by salary in 
+descending order.
+SELECT * FROM employees 
+ORDER BY salary DESC;
+
+
+                          DISTINCT, AND, OR, NOT, BETWEEN and LIKE 
+    
+   DISTINCT
+
+   19. List unique designations in the employees table: 
+ SELECT DISTINCT designation FROM employees;
+
+   20. Find the unique combinations of designation and salary
+SELECT DISTINCT designation, salary FROM employees;
+
+   21. Count the number of unique designations: 
+SELECT count( DISTINCT designation) FROM employees;
+   
+             //// AND \\\
+  
+  22.Find employees with a salary greater than 5000 and a designation of 'Manager':
+SELECT * FROM employees 
+  WHERE salary > 5000 AND designation = 'Manager';
+
+  23. Retrieve employees whose name starts with 'A' and salary is between 5000 and 10000: 
+SELECT * FROM employees 
+  WHERE name LIKE 'A%' AND salary BETWEEN 5000 AND 10000;
+
+  24. Find employees with a designation of 'Developer' and a salary less than 20000:
+SELECT * FROM employees 
+  WHERE designation = 'Developer' AND salary < 20000;
+ 
+            /// OR ////
+  
+  25.Find employees with a salary greater than 50000 or a designation of 'Intern
+SELECT * FROM employees 
+ WHERE salary > 50000 OR designation = 'Intern';
+
+ 26.Retrieve employees whose name starts with 'J' or salary is exactly 5000:
+SELECT * FROM employees 
+WHERE name LIKE 'J%' OR salary = 5000;
+  
+  27.  List employees who are either 'Manager' or 'Team Lead': 
+SELECT * FROM employees 
+WHERE designation IN ('Manager', 'Team Lead');
+  
+
+               /// NOT \\\\
+
+    28. Find employees who do not have a salary equal to 5000
+SELECT * FROM employees 
+   WHERE not salary = 5000;
+   
+   29.Retrieve employees whose designation is not 'Developer': 
+SELECT * FROM employees 
+WHERE not designation = 'Developer';
+
+ 30. Find employees whose name does not contain the letter 'e':
+SELECT * FROM employees 
+WHERE name NOT LIKE '%e%';
+
+      ///  BETWEEN \\\
+  
+   31. Find employees whose salary is between 10000 and 30000
+SELECT * FROM employees 
+WHERE salary BETWEEN 10000 AND 30000;
+
+32. Retrieve employees with id values between 5 and 15:
+SELECT * FROM employees 
+WHERE id BETWEEN 5 AND 15;
+
+ 33. Find employees whose salary is not between 5000 and 20000: 
+SELECT * FROM employees 
+WHERE salary NOT BETWEEN 5000 AND 20000;
+      
+      //// LIKE \\\\
+   
+    34.Find all employees whose names start with the letter A.
+ SELECT * FROM employees 
+WHERE name LIKE 'A%';
+
+35.Find all employees whose names end with the letter n. 
+SELECT * FROM employees 
+WHERE name LIKE '%n';
+
+36. Find all employees whose names contain the substring John. 
+SELECT * FROM employees 
+WHERE name LIKE '%John%';
+
+37.Find all employees whose names are exactly 5 characters long.
+SELECT * FROM employees 
+WHERE name LIKE '_____';
+
+38.Find all employees whose designations start with M and end with r.
+SELECT * FROM employees 
+WHERE designation LIKE 'M%r';
+
+39. Find all employees whose names have e as the second letter.
+SELECT * FROM employees 
+WHERE name LIKE '_e%';
+ 
+40. Find all employees whose names do not contain the letter z. 
+SELECT * FROM employees 
+WHERE name NOT LIKE '%z%';
+  
+        

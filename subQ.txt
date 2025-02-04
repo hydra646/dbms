@@ -1,0 +1,135 @@
+-- Employees Table
+CREATE TABLE employees (
+    employee_id INT PRIMARY KEY,  
+    name VARCHAR(255) NOT NULL, 
+    department VARCHAR(255),       
+     salary DECIMAL(10, 2)        
+);
+
+
+-- Departments Table
+CREATE TABLE departments (
+    department_id INT PRIMARY KEY,  
+    department_name VARCHAR(255) 
+);
+
+-- Projects Table
+CREATE TABLE projects (
+    project_id INT PRIMARY KEY,   
+    project_name VARCHAR(255) UNIQUE, 
+    department_id INT,           
+    FOREIGN KEY (department_id) REFERENCES departments(department_id) 
+);
+
+-- Insert data into the employees table
+INSERT INTO employees (employee_id, name, department, salary) VALUES
+(1, 'Alice', 'HR', 5000),
+(2, 'Bob', 'IT', 6000),
+(3, 'Charlie', 'HR', 5500);
+
+-- Insert data into the departments table
+INSERT INTO departments (department_id, department_name) VALUES
+(1, 'HR'),
+(2, 'IT');
+
+-- Insert data into the projects table
+INSERT INTO projects (project_id, project_name, department_id) VALUES
+(101, 'Project A', 1),
+(102, 'Project B', 2);
+
+1. Find Employees with Salary Greater Than the Average Salary of Their Department 
+
+SELECT e.employee_id, e.name, e.department, e.salary
+FROM employees e
+JOIN departments d ON e.department = d.department_name
+WHERE e.salary > (
+    SELECT AVG(e2.salary)
+    FROM employees e2
+    JOIN departments d2 ON e2.department = d2.department_name
+    WHERE d2.department_id = d.department_id
+);
+
+2. Get Employees Who Do Not Belong to the 'IT' Department 
+
+SELECT employee_id, name, department, salary
+FROM employees
+WHERE department != 'IT';
+
+3. List Employees Who Are Assigned to a Project 
+
+CREATE TABLE EmployeeProjects (
+    employee_id INT,
+    project_id INT,
+    FOREIGN KEY (employee_id) REFERENCES employees(employee_id),
+    FOREIGN KEY (project_id) REFERENCES projects(project_id),
+    PRIMARY KEY (employee_id, project_id)
+);
+
+INSERT INTO EmployeeProjects (employee_id, project_id) VALUES
+(1, 101),  -- Alice is assigned to Project A
+(2, 102),  -- Bob is assigned to Project B
+(3, 101);  -- Charlie is assigned to Project A
+
+SELECT e.employee_id, e.name, e.department, e.salary, p.project_name
+FROM employees e
+JOIN EmployeeProjects ep ON e.employee_id = ep.employee_id
+JOIN projects p ON ep.project_id = p.project_id;
+
+
+4. Find the Employee with the Highest Salary in the 'HR' Department 
+
+SELECT employee_id, name, department, salary
+FROM employees
+WHERE department = 'HR'
+ORDER BY salary DESC
+LIMIT 1;
+
+SELECT employee_id, name, department, salary
+FROM employees
+WHERE department = 'HR' AND salary = (
+    SELECT MAX(salary)
+    FROM employees
+    WHERE department = 'HR'
+);
+
+5. Get Departments That Have More Than 2 Employees 
+
+SELECT department, COUNT(*) AS employee_count
+FROM employees
+GROUP BY department
+HAVING COUNT(*) > 2;
+
+6. List Employees Whose Salary is Above the Average Salary of All Employees 
+SELECT employee_id, name, department, salary
+FROM employees
+WHERE salary > (SELECT AVG(salary) FROM employees);
+
+7. Find Employees Who Are Not Assigned to Any Project 
+SELECT e.employee_id, e.name, e.department, e.salary
+FROM employees e
+LEFT JOIN EmployeeProjects ep ON e.employee_id = ep.employee_id
+WHERE ep.project_id IS NULL;
+
+8. List Departments That Do Not Have Any Employees with a Salary Above 6000
+SELECT department
+FROM employees
+GROUP BY department
+HAVING MAX(salary) <= 6000;
+
+9. Get Employees Who Earn More Than the Employee with the Highest Salary in the IT 
+Department 
+
+SELECT employee_id, name, department, salary
+FROM employees
+WHERE salary > (
+    SELECT MAX(salary)
+    FROM employees
+    WHERE department = 'IT'
+);
+
+10. Find Projects That Do Not Belong to the HR Department 
+SELECT p.project_id, p.project_name
+FROM projects p
+JOIN departments d ON p.department_id = d.department_id
+WHERE d.department_name != 'HR';
+

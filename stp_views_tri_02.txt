@@ -1,0 +1,465 @@
+ Students: StudentID, Name, Department, DOB, Email 
+ Courses: CourseID, CourseName, Credits, Department 
+ Faculty: FacultyID, FacultyName, Department, Email 
+ Enrollments: EnrollmentID, StudentID, CourseID, Grade 
+ Teaches: FacultyID, CourseID, Semester
+
+CREATE TABLE Students (
+    StudentID INT PRIMARY KEY AUTO_INCREMENT, 
+    Name VARCHAR(255) NOT NULL,             
+    Department VARCHAR(255),                
+    DOB DATE,                               
+    Email VARCHAR(255) UNIQUE                
+);
+
+CREATE TABLE Courses (
+    CourseID INT PRIMARY KEY AUTO_INCREMENT,  -- Auto-incrementing primary key
+    CourseName VARCHAR(255) NOT NULL,       -- Course name (required)
+    Credits INT,                             -- Number of credits
+    Department VARCHAR(255)                 -- Department offering the course
+);
+
+CREATE TABLE Faculty (
+    FacultyID INT PRIMARY KEY AUTO_INCREMENT,  -- Auto-incrementing primary key
+    FacultyName VARCHAR(255) NOT NULL,    -- Faculty name (required)
+    Department VARCHAR(255),              -- Department
+    Email VARCHAR(255) UNIQUE             -- Email address (must be unique)
+);
+
+CREATE TABLE Enrollments (
+    EnrollmentID INT PRIMARY KEY AUTO_INCREMENT,  -- Auto-incrementing primary key
+    StudentID INT,
+    CourseID INT,
+    Grade VARCHAR(10),  -- Or ENUM if you have a predefined set of grades (e.g., A, B, C, etc.)
+    FOREIGN KEY (StudentID) REFERENCES Students(StudentID),  -- Foreign key referencing Students table
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID)   -- Foreign key referencing Courses table
+);
+
+CREATE TABLE Teaches (
+    FacultyID INT,
+    CourseID INT,
+    Semester VARCHAR(20),  -- E.g., "Fall 2024", "Spring 2025"
+    PRIMARY KEY (FacultyID, CourseID, Semester), -- Composite Primary Key
+    FOREIGN KEY (FacultyID) REFERENCES Faculty(FacultyID),
+    FOREIGN KEY (CourseID) REFERENCES Courses(CourseID)
+);
+
+
+INSERT INTO Students (StudentID, Name, Department, DOB, Email)  
+VALUES  
+    (1, 'Alice Johnson', 'Computer Science', '2002-05-14', 'alice.johnson@example.com'),  
+    (2, 'Bob Smith', 'Mathematics', '2001-09-22', 'bob.smith@example.com'),  
+    (3, 'Charlie Brown', 'Physics', '2000-12-10', 'charlie.brown@example.com');  
+
+INSERT INTO Courses (CourseID, CourseName, Credits, Department)  
+VALUES  
+    (201, 'Data Structures', 3, 'Computer Science'),  
+    (202, 'Calculus I', 4, 'Mathematics'),  
+    (203, 'Physics for Engineers', 3, 'Physics');  
+
+INSERT INTO Faculty (FacultyID, FacultyName, Department, Email)  
+VALUES  
+    (1, 'Dr. Emily Carter', 'Computer Science', 'emily.carter@example.com'),  
+    (2, 'Dr. John Williams', 'Mathematics', 'john.williams@example.com'),  
+    (3, 'Dr. Sarah Johnson', 'Physics', 'sarah.johnson@example.com');  
+
+
+INSERT INTO Enrollments (EnrollmentID, StudentID, CourseID, Grade)  
+VALUES  
+    (1, 1, 201, 'A'),  
+    (2, 2, 202, 'B+'),  
+    (3, 3, 203, 'A-');  
+
+INSERT INTO Teaches (FacultyID, CourseID, Semester)  
+VALUES  
+    (1, 201, 'Spring 2025'),  
+    (2, 202, 'Fall 2025'),  
+    (3, 203, 'Summer 2025');  
+
+1. Write a stored procedure to insert a new course into the Courses table, specifying the 
+course ID, name, credits, and department. 
+
+
+DELIMITER //
+
+CREATE PROCEDURE InsertNewCourse (
+    IN course_id INT,      -- Course ID (you might want to make this AUTO_INCREMENT in the table definition)
+    IN course_name VARCHAR(255),
+    IN credits INT,
+    IN department VARCHAR(255)
+)
+BEGIN
+    -- Check if the course ID already exists (optional but good practice)
+    IF NOT EXISTS (SELECT 1 FROM Courses WHERE CourseID = course_id) THEN
+        INSERT INTO Courses (CourseID, CourseName, Credits, Department)
+        VALUES (course_id, course_name, credits, department);
+
+        SELECT 'Course inserted successfully' AS message;  -- Optional success message
+    ELSE
+        SELECT 'Course with this ID already exists' AS message; -- Error message
+    END IF;
+END //
+
+DELIMITER ;
+
+to call
+CALL InsertCourse(204, 'Artificial Intelligence', 3, 'Computer Science');
+
+2. Create a stored procedure to retrieve the list of students enrolled in a particular 
+course. 
+
+DELIMITER $$
+
+CREATE PROCEDURE GetEnrolledStudents(
+    IN p_CourseID INT
+)
+BEGIN
+    SELECT s.StudentID, s.Name, s.Department, s.Email
+    FROM Enrollments e
+    JOIN Students s ON e.StudentID = s.StudentID
+    WHERE e.CourseID = p_CourseID;
+END $$
+
+DELIMITER ;
+ to call
+CALL GetEnrolledStudents(201);
+
+3. Develop a stored procedure to update the grade of a student for a specific course. 
+
+DELIMITER $$
+
+CREATE PROCEDURE UpdateStudentGrade(
+    IN p_StudentID INT,
+    IN p_CourseID INT,
+    IN p_NewGrade VARCHAR(5)
+)
+BEGIN
+    -- Check if the enrollment exists
+    IF EXISTS (
+        SELECT 1 FROM Enrollments 
+        WHERE StudentID = p_StudentID AND CourseID = p_CourseID
+    ) THEN
+        -- Update the grade if enrollment exists
+        UPDATE Enrollments
+        SET Grade = p_NewGrade
+        WHERE StudentID = p_StudentID AND CourseID = p_CourseID;
+        
+        SELECT 'Grade updated successfully' AS Message;
+    ELSE
+        -- Return message if enrollment does not exist
+        SELECT 'No enrollment found for the given StudentID and CourseID' AS Message;
+    END IF;
+END $$
+
+DELIMITER ;
+
+to call
+CALL UpdateStudentGrade(1, 201, 'A+');
+
+4. Write a stored procedure to delete a student record based on their StudentID.  
+DELIMITER $$
+
+CREATE PROCEDURE DeleteStudent(
+    IN p_StudentID INT
+)
+BEGIN
+    -- Check if the student exists
+    IF EXISTS (SELECT 1 FROM Students WHERE StudentID = p_StudentID) THEN
+        -- Delete enrollments associated with the student first (if necessary)
+        DELETE FROM Enrollments WHERE StudentID = p_StudentID;
+        
+        -- Delete the student record
+        DELETE FROM Students WHERE StudentID = p_StudentID;
+        
+        SELECT 'Student record deleted successfully' AS Message;
+    ELSE
+        -- Return message if the student does not exist
+        SELECT 'No student found with the given StudentID' AS Message;
+    END IF;
+END $$
+
+DELIMITER ;
+
+to call
+CALL DeleteStudent(1);
+
+5. Create a stored procedure to fetch all courses taught by a specific faculty member in 
+a given semester. 
+
+DELIMITER $$
+
+CREATE PROCEDURE GetCoursesByFaculty(
+    IN p_FacultyID INT,
+    IN p_Semester VARCHAR(50)
+)
+BEGIN
+    SELECT c.CourseID, c.CourseName, c.Credits, c.Department
+    FROM Teaches t
+    JOIN Courses c ON t.CourseID = c.CourseID
+    WHERE t.FacultyID = p_FacultyID AND t.Semester = p_Semester;
+END $$
+
+DELIMITER ;
+ to call
+CALL GetCoursesByFaculty(1, 'Spring 2025');
+
+1. Create a view that displays the list of students and their respective departments.
+
+CREATE VIEW StudentsWithDepartments AS
+SELECT 
+    StudentID, 
+    Name AS StudentName, 
+    Department
+FROM Students;
+
+to call
+SELECT * FROM StudentsWithDepartments;
+
+2. Design a view to show the details of courses, including the faculty teaching them and 
+the semester in which they are offered. 
+
+CREATE VIEW CourseDetails AS
+SELECT 
+    c.CourseID, 
+    c.CourseName, 
+    c.Credits, 
+    c.Department, 
+    f.FacultyID, 
+    f.FacultyName, 
+    t.Semester
+FROM Courses c
+JOIN Teaches t ON c.CourseID = t.CourseID
+JOIN Faculty f ON t.FacultyID = f.FacultyID;
+
+to call
+SELECT * FROM CourseDetails;
+
+3. Write a view to display all students along with the courses they are enrolled in and 
+their grades
+
+CREATE VIEW StudentsCoursesGrades AS
+SELECT 
+    s.StudentID, 
+    s.Name AS StudentName, 
+    c.CourseID, 
+    c.CourseName, 
+    e.Grade
+FROM Students s
+JOIN Enrollments e ON s.StudentID = e.StudentID
+JOIN Courses c ON e.CourseID = c.CourseID;
+
+to call
+SELECT * FROM StudentsCoursesGrades;
+
+4. Create a view that lists the average grade for each course.
+
+CREATE VIEW AverageCourseGrades AS
+SELECT 
+    c.CourseID,
+    c.CourseName,
+    AVG(
+        CASE 
+            WHEN e.Grade = 'A' THEN 4
+            WHEN e.Grade = 'B' THEN 3
+            WHEN e.Grade = 'C' THEN 2
+            WHEN e.Grade = 'D' THEN 1
+            WHEN e.Grade = 'F' THEN 0
+            ELSE NULL
+        END
+    ) AS AverageGrade
+FROM Courses c
+JOIN Enrollments e ON c.CourseID = e.CourseID
+GROUP BY c.CourseID, c.CourseName;
+
+to call
+SELECT * FROM AverageCourseGrades;
+
+5. Design a view that shows all faculty members and the number of courses they are 
+teaching.
+
+CREATE VIEW FacultyCourseCount AS
+SELECT 
+    f.FacultyID, 
+    f.FacultyName, 
+    COUNT(t.CourseID) AS NumberOfCourses
+FROM Faculty f
+LEFT JOIN Teaches t ON f.FacultyID = t.FacultyID
+GROUP BY f.FacultyID, f.FacultyName;
+
+to call
+SELECT * FROM FacultyCourseCount;
+
+1. Write a trigger to automatically update the total number of students in a department 
+when a new student is added to the Students table.
+
+DELIMITER $$
+
+CREATE TRIGGER UpdateDepartmentStudentCount
+AFTER INSERT ON Students
+FOR EACH ROW
+BEGIN
+    -- Update the department's student count in the Departments table
+    UPDATE Departments
+    SET TotalStudents = TotalStudents + 1
+    WHERE DepartmentName = NEW.Department;
+END $$
+
+DELIMITER ;
+
+2. Create a trigger to prevent deletion of a course if students are currently enrolled in it. 
+
+DELIMITER $$
+
+CREATE TRIGGER PreventCourseDeletion
+BEFORE DELETE ON Courses
+FOR EACH ROW
+BEGIN
+    -- Check if there are students enrolled in the course
+    IF EXISTS (SELECT 1 FROM Enrollments WHERE CourseID = OLD.CourseID) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Cannot delete course: Students are currently enrolled.';
+    END IF;
+END $$
+
+DELIMITER ;
+
+3. Write a trigger to log changes (INSERT, UPDATE, DELETE) made to the Enrollments table 
+into a separate EnrollmentLogs table. 
+
+CREATE TABLE EnrollmentLogs (
+    LogID INT AUTO_INCREMENT PRIMARY KEY,
+    EnrollmentID INT,
+    StudentID INT,
+    CourseID INT,
+    OldGrade VARCHAR(5),
+    NewGrade VARCHAR(5),
+    ActionType VARCHAR(10),  -- 'INSERT', 'UPDATE', or 'DELETE'
+    ActionTimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+DELIMITER $$
+CREATE TRIGGER LogEnrollmentInsert
+AFTER INSERT ON Enrollments
+FOR EACH ROW
+BEGIN
+    INSERT INTO EnrollmentLogs (EnrollmentID, StudentID, CourseID, NewGrade, ActionType)
+    VALUES (NEW.EnrollmentID, NEW.StudentID, NEW.CourseID, NEW.Grade, 'INSERT');
+END $$
+DELIMITER ;
+
+
+DELIMITER $$
+CREATE TRIGGER LogEnrollmentUpdate
+AFTER UPDATE ON Enrollments
+FOR EACH ROW
+BEGIN
+    INSERT INTO EnrollmentLogs (EnrollmentID, StudentID, CourseID, OldGrade, NewGrade, ActionType)
+    VALUES (OLD.EnrollmentID, OLD.StudentID, OLD.CourseID, OLD.Grade, NEW.Grade, 'UPDATE');
+END $$
+DELIMITER ;
+
+
+DELIMITER $$
+CREATE TRIGGER LogEnrollmentDelete
+AFTER DELETE ON Enrollments
+FOR EACH ROW
+BEGIN
+    INSERT INTO EnrollmentLogs (EnrollmentID, StudentID, CourseID, OldGrade, ActionType)
+    VALUES (OLD.EnrollmentID, OLD.StudentID, OLD.CourseID, OLD.Grade, 'DELETE');
+END $$
+DELIMITER ;
+
+test
+INSERT INTO Enrollments (EnrollmentID, StudentID, CourseID, Grade) 
+VALUES (1, 101, 201, 'B');
+
+ to fix error
+ALTER TABLE Enrollments MODIFY COLUMN EnrollmentID INT AUTO_INCREMENT;
+
+UPDATE Enrollments SET Grade = 'A' WHERE EnrollmentID = 1;
+
+DELETE FROM Enrollments WHERE EnrollmentID = 1;
+
+
+
+4. Create a trigger to set the grade to 'F' if it is entered as NULL or an invalid value in the 
+Enrollments table.
+
+DELIMITER $$
+
+CREATE TRIGGER EnsureValidGradeBeforeInsert
+BEFORE INSERT ON Enrollments
+FOR EACH ROW
+BEGIN
+    -- If Grade is NULL or an invalid value, set it to 'F'
+    IF NEW.Grade NOT IN ('A', 'B', 'C', 'D', 'F') OR NEW.Grade IS NULL THEN
+        SET NEW.Grade = 'F';
+    END IF;
+END $$
+
+DELIMITER ;
+
+
+DELIMITER $$
+
+CREATE TRIGGER EnsureValidGradeBeforeUpdate
+BEFORE UPDATE ON Enrollments
+FOR EACH ROW
+BEGIN
+    -- If Grade is NULL or an invalid value, set it to 'F'
+    IF NEW.Grade NOT IN ('A', 'B', 'C', 'D', 'F') OR NEW.Grade IS NULL THEN
+        SET NEW.Grade = 'F';
+    END IF;
+END $$
+
+DELIMITER ;
+
+test
+
+
+5. Write a trigger to send an alert (log entry) whenever a faculty member is assigned 
+more than 5 courses in a single semester.
+
+CREATE TABLE FacultyAlerts (
+    AlertID INT AUTO_INCREMENT PRIMARY KEY,
+    FacultyID INT,
+    Semester VARCHAR(50),
+    CourseCount INT,
+    AlertMessage VARCHAR(255),
+    AlertTimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+DELIMITER $$
+
+CREATE TRIGGER FacultyCourseLimit
+AFTER INSERT ON Teaches
+FOR EACH ROW
+BEGIN
+    DECLARE course_count INT;
+
+    -- Count how many courses the faculty member is teaching in the same semester
+    SELECT COUNT(*) INTO course_count
+    FROM Teaches
+    WHERE FacultyID = NEW.FacultyID AND Semester = NEW.Semester;
+
+    -- If faculty is assigned more than 5 courses, log an alert
+    IF course_count > 5 THEN
+        INSERT INTO FacultyAlerts (FacultyID, Semester, CourseCount, AlertMessage)
+        VALUES (NEW.FacultyID, NEW.Semester, course_count, 
+                CONCAT('Faculty ID ', NEW.FacultyID, ' has exceeded the course limit in ', NEW.Semester));
+    END IF;
+END $$
+
+DELIMITER ;
+
+
+test
+
+INSERT INTO Faculty (FacultyID, FacultyName, Department, Email)
+VALUES
+    (4, 'Dr. Jane Smith', 'Mathematics', 'janesmith@example.com'),
+    (5, 'Dr. Richard Roe', 'Physics', 'richardroe@example.com');
+   
+
+     

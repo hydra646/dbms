@@ -1,0 +1,370 @@
+-- Employees Table
+CREATE TABLE employees (
+    employee_id INT PRIMARY KEY,  
+    name VARCHAR(255) NOT NULL, 
+    department VARCHAR(255),       
+     salary DECIMAL(10, 2)        
+);
+
+
+-- Departments Table
+CREATE TABLE departments (
+    department_id INT PRIMARY KEY,  
+    department_name VARCHAR(255) 
+);
+
+-- Projects Table
+CREATE TABLE projects (
+    project_id INT PRIMARY KEY,   
+    project_name VARCHAR(255) UNIQUE, 
+    department_id INT,           
+    FOREIGN KEY (department_id) REFERENCES departments(department_id) 
+);
+
+-- Insert data into the employees table
+INSERT INTO employees (employee_id, name, department, salary) VALUES
+(1, 'Alice', 'HR', 5000),
+(2, 'Bob', 'IT', 6000),
+(3, 'Charlie', 'HR', 5500);
+
+-- Insert data into the departments table
+INSERT INTO departments (department_id, department_name) VALUES
+(1, 'HR'),
+(2, 'IT');
+
+-- Insert data into the projects table
+INSERT INTO projects (project_id, project_name, department_id) VALUES
+(101, 'Project A', 1),
+(102, 'Project B', 2);
+
+1. Create a Stored Procedure to Get Employee Salary by Department
+DELIMITER // 
+CREATE PROCEDURE GetEmployeeSalaryByDepartment (IN dept_name VARCHAR(255))
+BEGIN
+    SELECT e.name, e.salary
+    FROM employees e
+    JOIN departments d ON e.department = d.department_name 
+    WHERE d.department_name = dept_name; 
+END //
+
+DELIMITER ; 
+
+to call
+CALL GetEmployeeSalaryByDepartment('HR');
+
+2.Create a Stored Procedure to Update Employee Salary 
+
+DELIMITER //
+
+CREATE PROCEDURE UpdateEmployeeSalary (
+    IN emp_id INT,        
+    IN new_salary DECIMAL(10, 2) 
+)
+BEGIN
+    
+    IF EXISTS (SELECT 1 FROM employees WHERE employee_id = emp_id) THEN
+        UPDATE employees
+        SET salary = new_salary
+        WHERE employee_id = emp_id;
+
+        SELECT 'Salary updated successfully' AS message; 
+
+    ELSE
+        SELECT 'Employee not found' AS message; 
+    END IF;
+END //
+
+DELIMITER ;
+ to call
+CALL UpdateEmployeeSalary(2, 6500);
+
+3. Create a Stored Procedure to Insert a New Employee 
+DELIMITER //
+
+DELIMITER //
+CREATE PROCEDURE InsertNewEmployee (
+    IN new_name VARCHAR(255),
+    IN new_department VARCHAR(255),
+    IN new_salary DECIMAL(10, 2)
+)
+BEGIN
+    
+    IF EXISTS (SELECT 1 FROM departments WHERE department_name = new_department) THEN
+        
+        SELECT department_id INTO @dept_id 
+        FROM departments
+        WHERE department_name = new_department;
+
+        
+        INSERT INTO employees (name, department, salary)  
+        VALUES (new_name, new_department, new_salary);
+
+        SELECT 'Employee inserted successfully' AS message;
+
+    ELSE
+        SELECT 'Department not found. Cannot insert employee.' AS message;
+    END IF;
+END //
+
+DELIMITER ;
+
+to call
+CALL InsertNewEmployee('David', 'IT', 7000);
+
+4.Create a Stored Procedure to Get Employees with Salary Greater Than a Certain Amount 
+
+DELIMITER //
+
+CREATE PROCEDURE GetEmployeesWithSalaryGreaterThan (IN minimum_salary DECIMAL(10, 2))
+BEGIN
+    SELECT employee_id, name, department, salary
+    FROM employees
+    WHERE salary > minimum_salary;
+END //
+
+DELIMITER ;
+
+to call
+CALL GetEmployeesWithSalaryGreaterThan(5500);
+
+5. Create a Stored Procedure to Delete Employee by ID 
+DELIMITER //
+
+CREATE PROCEDURE DeleteEmployeeByID (IN emp_id INT)
+BEGIN
+    
+    IF EXISTS (SELECT 1 FROM employees WHERE employee_id = emp_id) THEN
+        DELETE FROM employees
+        WHERE employee_id = emp_id;
+
+        SELECT 'Employee deleted successfully' AS message;
+
+    ELSE
+        SELECT 'Employee not found' AS message;
+    END IF;
+END //
+
+DELIMITER ;
+
+to call 
+CALL DeleteEmployeeByID(2);
+
+6.Create a View to Show Employees and Their Departments 
+CREATE VIEW EmployeeDepartments AS
+SELECT
+    e.employee_id,
+    e.name,
+    e.salary,
+    d.department_name
+FROM
+    employees e
+JOIN
+    departments d ON e.department = d.department_name;
+
+to call
+SELECT * FROM EmployeeDepartments;
+SELECT * FROM EmployeeDepartments WHERE department_name = 'HR';
+
+  7.  Create a View to Show Employees with Salary Above 6000
+
+USE employee; 
+
+CREATE VIEW HighSalaryEmployees AS
+SELECT
+    employee_id,
+    name,
+    department,
+    salary
+FROM
+    employees
+WHERE
+    salary > 6000;
+to call
+use employee
+SELECT * FROM HighSalaryEmployees;
+
+8.
+USE employee; 
+
+CREATE VIEW ProjectsWithDepartmentNames AS
+SELECT
+    p.project_id,
+    p.project_name,
+    d.department_name
+FROM
+    projects p
+JOIN
+    departments d ON p.department_id = d.department_id;
+
+to call
+
+use employee;
+SELECT * FROM ProjectsWithDepartmentNames;
+
+9.Create a View to Get Employee and Project Details
+
+use employee;
+CREATE VIEW EmployeeProjectDetails AS
+SELECT
+    e.employee_id,
+    e.name AS employee_name,  
+    e.department AS employee_department,
+    e.salary,
+    p.project_id,
+    p.project_name
+FROM
+    employees e
+LEFT JOIN  
+    projects p ON e.department = (SELECT department_name from departments where department_id = p.department_id);
+
+to call
+use employee;
+SELECT * FROM EmployeeProjectDetails;
+
+10.Create a View to Show the Total Salary of Employees in Each Department
+
+use employee;
+CREATE VIEW DepartmentSalaryTotals AS
+SELECT
+    d.department_name,
+    SUM(e.salary) AS total_salary
+FROM
+    employees e
+JOIN
+    departments d ON e.department = d.department_name  -- Or d.department_id if you join on IDs
+GROUP BY
+    d.department_name;
+
+ to call
+use employee;
+SELECT * FROM DepartmentSalaryTotals;
+
+11. Create a Trigger to Automatically Update Employee Salary History (Note : when update salary 
+salary history table will be updated : salary_history_table(employee_id, old_salary, 
+new_salary, change_date))
+
+use employee;
+DELIMITER //
+
+CREATE TRIGGER AfterEmployeeSalaryUpdate
+AFTER UPDATE ON employees
+FOR EACH ROW
+BEGIN
+    INSERT INTO salary_history (employee_id, old_salary, new_salary, change_date)
+    VALUES (OLD.employee_id, OLD.salary, NEW.salary, NOW());
+END //
+
+DELIMITER ;
+
+use employee;
+CREATE TABLE salary_history (
+    salary_history_id INT AUTO_INCREMENT PRIMARY KEY,  -- Add a primary key for the history table itself
+    employee_id INT NOT NULL,
+    old_salary DECIMAL(10, 2),
+    new_salary DECIMAL(10, 2),
+    change_date DATETIME,
+    FOREIGN KEY (employee_id) REFERENCES employees(employee_id)  -- Foreign key to link back to employees table
+);
+
+to call
+use employee;
+UPDATE employees SET salary = 6500 WHERE employee_id = 2;
+
+12.Create a Trigger to Prevent Deleting Employees with Salary Above 7000
+use employee;
+DELIMITER //
+
+CREATE TRIGGER PreventHighSalaryEmployeeDelete
+BEFORE DELETE ON employees
+FOR EACH ROW
+BEGIN
+    IF OLD.salary > 7000 THEN
+        SIGNAL SQLSTATE '45000'  -- Standard SQLSTATE for user-defined exceptions
+        SET MESSAGE_TEXT = 'Cannot delete employee with salary above 7000.';
+    END IF;
+END //
+
+DELIMITER ;
+
+to call
+
+13.Create a Trigger to Automatically Update Department’s Average Salary After Salary Change 
+
+use employee;
+DELIMITER //
+
+CREATE TRIGGER UpdateDepartmentAvgSalary
+AFTER UPDATE ON employees
+FOR EACH ROW
+BEGIN
+    DECLARE dept_id INT;
+
+    -- Get the department ID for the updated employee
+    SELECT department_id INTO dept_id
+    FROM departments
+    WHERE department_name = OLD.department;  -- Use OLD.department to get the department BEFORE the update
+
+    -- Update the average salary in the departments table
+    UPDATE departments
+    SET avg_salary = (SELECT AVG(salary) FROM employees WHERE department = (SELECT department_name from departments where department_id = dept_id))  -- Recalculate the average
+    WHERE department_id = dept_id; 
+END //
+
+DELIMITER ;
+
+2. use employee;
+ALTER TABLE departments
+ADD COLUMN avg_salary DECIMAL(10, 2);
+3.use employee;
+UPDATE departments
+SET avg_salary = (SELECT AVG(salary) FROM employees WHERE department = department_name);
+
+14. Create a Trigger to Insert a Record in the Audit Table After Employee Insert (Note : 
+audit_table(employee_id, action, action_date) – Example(1,’Insert’,’1-1-2025))
+
+CREATE TABLE audit_table (
+    audit_id INT AUTO_INCREMENT PRIMARY KEY,  -- It's good practice to have a primary key on the audit table
+    employee_id INT,
+    action VARCHAR(255),
+    action_date DATETIME
+    -- Add a foreign key constraint if desired:
+    -- FOREIGN KEY (employee_id) REFERENCES employees(employee_id)
+);
+
+use employee;
+DELIMITER //
+CREATE TRIGGER AfterEmployeeInsert
+AFTER INSERT ON employees
+FOR EACH ROW
+BEGIN
+    INSERT INTO audit_table (employee_id, action, action_date)
+    VALUES (NEW.employee_id, 'Insert', NOW());
+END //
+
+DELIMITER ;
+
+
+INSERT INTO employees (
+VALUES (6,'Eve', 'Sales', 7500)
+    );
+
+15.
+
+use employee;
+DELIMITER //
+
+CREATE TRIGGER UpdateProjectDepartment
+AFTER UPDATE ON departments
+FOR EACH ROW
+BEGIN
+    UPDATE projects
+    SET department_id = NEW.department_id  -- Update projects with the new department ID
+    WHERE department_id = OLD.department_id; -- Match projects with the old department ID
+END //
+
+DELIMITER ;
+
+ALTER TABLE projects
+ADD CONSTRAINT FK_ProjectDepartment
+FOREIGN KEY (department_id) REFERENCES departments(department_id);
+
