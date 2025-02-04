@@ -1,0 +1,57 @@
+CREATE DATABASE  EmployeeDB;
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    Name VARCHAR(255),
+    Department VARCHAR(255),
+    Salary INT,
+    Age INT,
+    JoiningDate DATE,
+    City VARCHAR(255)
+);
+
+INSERT INTO Employees (EmployeeID, Name, Department, Salary, Age, JoiningDate, City) VALUES
+(1, 'Alice', 'HR', 50000, 30, '2018-02-10', 'New York'),
+(2, 'Bob', 'IT', 70000, 35, '2016-05-21', 'San Diego'),
+(3, 'Charlie', 'IT', 80000, 40, '2015-08-19', 'San Diego'),
+(4, 'Diana', 'HR', 60000, 29, '2019-11-12', 'New York'),
+(5, 'Eve', 'Finance', 75000, 32, '2017-03-15', 'Boston'),
+(6, 'Frank', 'Finance', 55000, 38, '2019-07-08', 'Boston'),
+(7, 'Grace', 'IT', 90000, 28, '2020-06-01', 'Chicago'),
+(8, 'Hannah', 'HR', 65000, 31, '2021-10-11', 'New York'),
+(9, 'Isaac', 'IT', 72000, 45, '2014-01-25', 'San Diego'),
+(10, 'Jacob', 'Finance', 50000, 50, '2013-12-30', 'Boston');
+1. SELECT Department, SUM(Salary) AS TotalSalary
+FROM Employees
+GROUP BY Department;
+2. SELECT Department, COUNT(*) AS NumberOfEmployees
+FROM Employees
+GROUP BY Department;
+3. SELECT Department, SUM(Salary) AS TotalSalary
+FROM Employees
+GROUP BY Department
+HAVING SUM(Salary) > 150000;
+4. SELECT Department, AVG(Salary) AS AverageSalary
+FROM Employees
+GROUP BY Department;
+5. SELECT *
+FROM Employees
+ORDER BY JoiningDate DESC;
+6. SELECT Department, AVG(Age) AS AverageAge
+FROM Employees
+GROUP BY Department
+ORDER BY AverageAge ASC;
+7. SELECT City, COUNT(*) AS NumberOfEmployees
+FROM Employees
+GROUP BY City
+HAVING COUNT(*) > 2;
+8. SELECT *
+FROM Employees
+ORDER BY Salary DESC
+LIMIT 3;
+9. SELECT Department, City, SUM(Salary) AS TotalSalary
+FROM Employees
+GROUP BY Department, City;
+10. SELECT Department, MAX(Salary) AS HighestSalary
+FROM Employees
+GROUP BY Department;
+ 

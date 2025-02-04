@@ -1,0 +1,57 @@
+CREATE DATABASE Customer;
+
+CREATE TABLE Sales (
+    SalesID INT PRIMARY KEY,
+    Product VARCHAR(255),
+    Category VARCHAR(255),
+    Quantity INT,
+    Price DECIMAL(10, 2),
+    SaleDate DATE
+);
+
+
+INSERT INTO Sales (SalesID, Product, Category, Quantity, Price, SaleDate)  
+VALUES  
+    (1, 'Laptop', 'Electronics', 2, 1200.50, '2025-01-19'),  
+    (2, 'Smartphone', 'Electronics', 5, 800.75, '2025-01-18'),  
+    (3, 'Headphones', 'Accessories', 10, 150.00, '2025-01-17'),  
+    (4, 'Office Chair', 'Furniture', 3, 250.99, '2025-01-16'),  
+    (5, 'Coffee Maker', 'Appliances', 4, 99.99, '2025-01-15');  
+
+1.SELECT SUM(Quantity * Price) AS TotalRevenue  
+FROM Sales;
+2. SELECT SUM(Quantity) AS TotalProductsSold  
+FROM Sales;
+3. SELECT AVG(Price) AS AveragePrice  
+FROM Sales;
+4. SELECT COUNT(DISTINCT Category) AS UniqueCategories  
+FROM Sales;
+5. SELECT MAX(Price) AS HighestPrice  
+FROM Sales;
+6. SELECT MIN(Price) AS LowestPrice  
+FROM Sales;
+7. SELECT AVG(Quantity) AS AverageQuantitySold  
+FROM Sales;
+8. SELECT COUNT(SalesID) AS TotalSalesRecords  
+FROM Sales;
+SELECT COUNT(*) AS TotalSalesRecords  
+FROM Sales;
+9. SELECT Category, SUM(Quantity * Price) AS TotalRevenue  
+FROM Sales  
+GROUP BY Category;
+10. SELECT Category, AVG(Price) AS AveragePrice  
+FROM Sales  
+GROUP BY Category;
+11. SELECT Category, SUM(Quantity * Price) AS TotalRevenue  
+FROM Sales  
+GROUP BY Category  
+ORDER BY TotalRevenue DESC  
+12. SELECT Product, SUM(Quantity) AS TotalQuantitySold  
+FROM Sales  
+GROUP BY Product;
+ 
+ 13. 13. SELECT MAX(Quantity) AS MaxQuantitySold 
+FROM Sales;
+14. SELECT SUM(Quantity * Price) AS TotalRevenue  
+FROM Sales  
+WHERE Product = 'Laptop';
