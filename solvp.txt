@@ -1,0 +1,354 @@
+1. Create Database "employee_management"
+
+CREATE DATABASE employee_management;
+-- MySQL, SQL Server:
+-- CREATE DATABASE employee_management;
+
+-- PostgreSQL:
+-- CREATE DATABASE employee_management;
+
+2. Create Tables and Insert Data
+-- Create Tables
+
+CREATE TABLE Countries (
+    country_id INT PRIMARY KEY,
+    country_name VARCHAR(255)
+);
+
+CREATE TABLE Locations (
+    location_id INT PRIMARY KEY,
+    location_title VARCHAR(255),
+    country_id INT,
+    FOREIGN KEY (country_id) REFERENCES Countries(country_id)
+);
+
+CREATE TABLE Departments (
+    department_id INT PRIMARY KEY,
+    department_name VARCHAR(255),
+    location_id INT,
+    FOREIGN KEY (location_id) REFERENCES Locations(location_id)
+);
+
+CREATE TABLE Designations (
+    designation_id INT PRIMARY KEY,
+    designation_title VARCHAR(255)
+);
+
+CREATE TABLE Employees (
+    emp_id INT PRIMARY KEY,
+    name VARCHAR(255),
+    hire_date DATE,
+    email VARCHAR(255),
+    salary DECIMAL(10, 2),
+    designation_id INT,
+    department_id INT,
+    FOREIGN KEY (designation_id) REFERENCES Designations(designation_id),
+    FOREIGN KEY (department_id) REFERENCES Departments(department_id)
+);
+
+-- Insert Data (Example Data)
+
+INSERT INTO Countries (country_id, country_name) VALUES
+(1, 'USA'), (2, 'Canada'), (3, 'UK'), (4, 'Germany'), (5, 'Japan');
+
+INSERT INTO Locations (location_id, location_title, country_id) VALUES
+(101, 'New York', 1), (102, 'Toronto', 2), (103, 'London', 3), (104, 'Berlin', 4), (105, 'Tokyo', 5);
+
+INSERT INTO Departments (department_id, department_name, location_id) VALUES
+(1, 'Sales', 101), (2, 'Marketing', 102), (3, 'HR', 103), (4, 'Finance', 104), (5, 'IT', 105);
+
+INSERT INTO Designations (designation_id, designation_title) VALUES
+(1, 'Manager'), (2, 'Analyst'), (3, 'Developer'), (4, 'Clerk'), (5, 'Director');
+
+INSERT INTO Employees (emp_id, name, hire_date, email, salary, designation_id, department_id) VALUES
+(1, 'John Smith', '2020-01-15', 'john.smith@example.com', 60000.00, 1, 1),
+(2, 'Alice Johnson', '2021-05-20', 'alice.johnson@example.com', 75000.00, 2, 2),
+(3, 'Bob Williams', '2019-11-10', 'bob.williams@example.com', 55000.00, 3, 3),
+(4, 'Emily Brown', '2022-03-05', 'emily.brown@example.com', 65000.00, 4, 4),
+(5, 'Michael Davis', '2020-09-25', 'michael.davis@example.com', 80000.00, 5, 5);
+
+
+3. Display Employee Name, Department, Country, and Designation for "HR" Department
+SELECT e.name AS EmployeeName, 
+       d.department_name AS Department, 
+       l.location_title AS Location, 
+       c.country_name AS Country, 
+       ds.designation_title AS Designation
+FROM Employees e
+JOIN Departments d ON e.department_id = d.department_id
+JOIN Locations l ON d.location_id = l.location_id
+JOIN Countries c ON l.country_id = c.country_id
+JOIN Designations ds ON e.designation_id = ds.designation_id
+WHERE d.department_name = 'HR';
+
+4. Employee Name with Second Highest Salary (Using Subquery)
+SELECT name
+FROM Employees
+WHERE salary = (
+    SELECT MAX(salary)
+    FROM Employees
+    WHERE salary < (SELECT MAX(salary) FROM Employees)
+);
+
+
+5. Update Email to 'Not Available' for "Finance" Department Employees
+
+UPDATE Employees
+SET email = 'Not Available'
+WHERE department_id = (
+    SELECT department_id
+    FROM Departments
+    WHERE department_name = 'Finance'
+);
+
+6. Add "year_of_establishment" Column to "Departments" Table
+
+ALTER TABLE Departments
+ADD COLUMN year_of_establishment INT;  -- You can specify the data type as needed (e.g., DATE, VARCHAR)
+
+7. Employees with Salary More Than Any Average Salary of Any Department
+
+SELECT emp_id, name, designation_id AS job  -- Assuming designation_id represents job
+FROM Employees
+WHERE salary > ANY (
+    SELECT AVG(salary)
+    FROM Employees
+    GROUP BY department_id
+);
+
+
+8. Parameterized Procedure (Example in SQL Server)
+
+-- Create a stored procedure to display employee details
+CREATE PROCEDURE GetEmployeeDetails (
+    @EmpID INT,
+    @CountryName VARCHAR(255)
+)
+AS
+BEGIN
+    SELECT e.name AS EmployeeName, 
+           d.department_name AS Department, 
+           c.country_name AS Country
+    FROM Employees e
+    JOIN Departments d ON e.department_id = d.department_id
+    JOIN Locations l ON d.location_id = l.location_id
+    JOIN Countries c ON l.country_id = c.country_id
+    WHERE e.emp_id = @EmpID AND c.country_name = @CountryName;
+END;
+
+-- Execute the procedure
+EXEC GetEmployeeDetails 1, 'USA'; -- Replace with desired EmpID and CountryName
+
+
+9. Complex Views (Example)
+CREATE VIEW EmployeeDepartmentDetails AS
+SELECT e.emp_id, e.name, d.department_name, l.location_title, c.country_name
+FROM Employees e
+JOIN Departments d ON e.department_id = d.department_id
+JOIN Locations l ON d.location_id = l.location_id
+JOIN Countries c ON l.country_id = c.country_id;
+
+-- Querying the view
+SELECT * FROM EmployeeDepartmentDetails WHERE country_name = 'USA';
+
+Let's address the database management system exam questions one by one. Since you haven't specified a particular database system (like MySQL, PostgreSQL, SQL Server, etc.), I'll provide general SQL syntax that should work with most systems, with notes where syntax might vary.
+
+1. Create Database "employee_management"
+
+SQL
+
+CREATE DATABASE employee_management;
+-- MySQL, SQL Server:
+-- CREATE DATABASE employee_management;
+
+-- PostgreSQL:
+-- CREATE DATABASE employee_management;
+2. Create Tables and Insert Data
+
+SQL
+
+-- Create Tables
+
+CREATE TABLE Countries (
+    country_id INT PRIMARY KEY,
+    country_name VARCHAR(255)
+);
+
+CREATE TABLE Locations (
+    location_id INT PRIMARY KEY,
+    location_title VARCHAR(255),
+    country_id INT,
+    FOREIGN KEY (country_id) REFERENCES Countries(country_id)
+);
+
+CREATE TABLE Departments (
+    department_id INT PRIMARY KEY,
+    department_name VARCHAR(255),
+    location_id INT,
+    FOREIGN KEY (location_id) REFERENCES Locations(location_id)
+);
+
+CREATE TABLE Designations (
+    designation_id INT PRIMARY KEY,
+    designation_title VARCHAR(255)
+);
+
+CREATE TABLE Employees (
+    emp_id INT PRIMARY KEY,
+    name VARCHAR(255),
+    hire_date DATE,
+    email VARCHAR(255),
+    salary DECIMAL(10, 2),
+    designation_id INT,
+    department_id INT,
+    FOREIGN KEY (designation_id) REFERENCES Designations(designation_id),
+    FOREIGN KEY (department_id) REFERENCES Departments(department_id)
+);
+
+-- Insert Data (Example Data)
+
+INSERT INTO Countries (country_id, country_name) VALUES
+(1, 'USA'), (2, 'Canada'), (3, 'UK'), (4, 'Germany'), (5, 'Japan');
+
+INSERT INTO Locations (location_id, location_title, country_id) VALUES
+(101, 'New York', 1), (102, 'Toronto', 2), (103, 'London', 3), (104, 'Berlin', 4), (105, 'Tokyo', 5);
+
+INSERT INTO Departments (department_id, department_name, location_id) VALUES
+(1, 'Sales', 101), (2, 'Marketing', 102), (3, 'HR', 103), (4, 'Finance', 104), (5, 'IT', 105);
+
+INSERT INTO Designations (designation_id, designation_title) VALUES
+(1, 'Manager'), (2, 'Analyst'), (3, 'Developer'), (4, 'Clerk'), (5, 'Director');
+
+INSERT INTO Employees (emp_id, name, hire_date, email, salary, designation_id, department_id) VALUES
+(1, 'John Smith', '2020-01-15', 'john.smith@example.com', 60000.00, 1, 1),
+(2, 'Alice Johnson', '2021-05-20', 'alice.johnson@example.com', 75000.00, 2, 2),
+(3, 'Bob Williams', '2019-11-10', 'bob.williams@example.com', 55000.00, 3, 3),
+(4, 'Emily Brown', '2022-03-05', 'emily.brown@example.com', 65000.00, 4, 4),
+(5, 'Michael Davis', '2020-09-25', 'michael.davis@example.com', 80000.00, 5, 5);
+3. Display Employee Name, Department, Country, and Designation for "HR" Department
+
+SQL
+
+SELECT e.name AS EmployeeName, 
+       d.department_name AS Department, 
+       l.location_title AS Location, 
+       c.country_name AS Country, 
+       ds.designation_title AS Designation
+FROM Employees e
+JOIN Departments d ON e.department_id = d.department_id
+JOIN Locations l ON d.location_id = l.location_id
+JOIN Countries c ON l.country_id = c.country_id
+JOIN Designations ds ON e.designation_id = ds.designation_id
+WHERE d.department_name = 'HR';
+4. Employee Name with Second Highest Salary (Using Subquery)
+
+SQL
+
+SELECT name
+FROM Employees
+WHERE salary = (
+    SELECT MAX(salary)
+    FROM Employees
+    WHERE salary < (SELECT MAX(salary) FROM Employees)
+);
+5. Update Email to 'Not Available' for "Finance" Department Employees
+
+SQL
+
+UPDATE Employees
+SET email = 'Not Available'
+WHERE department_id = (
+    SELECT department_id
+    FROM Departments
+    WHERE department_name = 'Finance'
+);
+6. Add "year_of_establishment" Column to "Departments" Table
+
+SQL
+
+ALTER TABLE Departments
+ADD COLUMN year_of_establishment INT;  -- You can specify the data type as needed (e.g., DATE, VARCHAR)
+7. Employees with Salary More Than Any Average Salary of Any Department
+
+SQL
+
+SELECT emp_id, name, designation_id AS job  -- Assuming designation_id represents job
+FROM Employees
+WHERE salary > ANY (
+    SELECT AVG(salary)
+    FROM Employees
+    GROUP BY department_id
+);
+8. Parameterized Procedure (Example in SQL Server)
+
+DELIMITER //  -- Change delimiter to avoid conflicts with semicolons inside the procedure
+
+CREATE PROCEDURE GetEmployeeDetails (
+    IN EmpID INT,         -- Use IN for input parameters
+    IN CountryName VARCHAR(255)
+)
+BEGIN
+    -- Error Handling (Optional, but good practice)
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        SELECT 'Error occurred' AS ErrorMessage;  -- Or log the error
+        ROLLBACK;  -- If needed, rollback any changes
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error in procedure'; -- Raise a custom error
+    END;
+
+    START TRANSACTION; -- Begin a transaction (Optional, but good practice)
+
+    SELECT e.name AS EmployeeName, 
+           d.department_name AS Department, 
+           c.country_name AS Country
+    FROM Employees e
+    JOIN Departments d ON e.department_id = d.department_id
+    JOIN Locations l ON d.location_id = l.location_id
+    JOIN Countries c ON l.country_id = c.country_id
+    WHERE e.emp_id = EmpID AND c.country_name = CountryName;
+
+    COMMIT; -- Commit the transaction (Optional)
+
+END //
+
+DELIMITER ; -- Reset the delimiter back to semicolon
+
+-- Calling the stored procedure
+CALL GetEmployeeDetails(1, 'USA');  -- Use CALL to execute
+
+9. Complex Views (Example)
+
+SQL
+
+CREATE VIEW EmployeeDepartmentDetails AS
+SELECT e.emp_id, e.name, d.department_name, l.location_title, c.country_name
+FROM Employees e
+JOIN Departments d ON e.department_id = d.department_id
+JOIN Locations l ON d.location_id = l.location_id
+JOIN Countries c ON l.country_id = c.country_id;
+
+-- Querying the view
+SELECT * FROM EmployeeDepartmentDetails WHERE country_name = 'USA'; 
+
+10. Trigger to Archive Deleted Employees
+-- Step 1: Create an archive table
+CREATE TABLE archived_employees (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Step 2: Create a trigger to archive deleted employees
+DELIMITER $$
+
+CREATE TRIGGER trigger_archive_employee
+BEFORE DELETE ON Employees
+FOR EACH ROW
+BEGIN
+    -- Insert deleted employee data into the archive table
+    INSERT INTO archived_employees (employee_id, name, deleted_at)
+    VALUES (OLD.emp_id, OLD.name, NOW());
+END $$
+
+DELIMITER ;
